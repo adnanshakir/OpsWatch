@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
+import incidentRoutes from './routes/incident.routes.js';
 import errorHandler from './middlewares/error.middleware.js';
 
 const app = express();
@@ -21,6 +22,7 @@ app.use(
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/incidents', incidentRoutes);
 
 // Central error handling
 app.use(errorHandler);
