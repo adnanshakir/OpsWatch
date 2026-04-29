@@ -10,6 +10,7 @@ import validate from '../middlewares/validate.middleware.js';
 import { loginSchema, registerSchema } from '../validators/auth.validator.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import passport from 'passport';
+import { authLimiter } from '../middlewares/rateLimit.middleware.js';
 
 const router = Router();
 
@@ -18,14 +19,14 @@ const router = Router();
     @desc    Register a new user
     @access  Public
 */
-router.post('/register', validate(registerSchema), register);
+router.post('/register', authLimiter, validate(registerSchema), register);
 
 /*
     @route   POST /api/auth/login
     @desc    Authenticate user and issue tokens (via cookies)
     @access  Public
 */
-router.post('/login', validate(loginSchema), login);
+router.post('/login', authLimiter, validate(loginSchema), login);
 
 /*
     @route   POST /api/auth/refresh-token

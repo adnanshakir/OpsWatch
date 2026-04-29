@@ -15,9 +15,12 @@ import {
 } from '../controllers/incident.controller.js';
 import updateRoutes from './update.routes.js';
 
+import { apiLimiter } from '../middlewares/rateLimit.middleware.js';
+
 const router = Router();
 
 router.use(authenticate);
+router.use(apiLimiter);
 
 router.post('/', validate(createIncidentSchema), createIncident);
 router.get('/', getIncidents);
