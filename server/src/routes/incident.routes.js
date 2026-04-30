@@ -22,10 +22,34 @@ const router = Router();
 router.use(authenticate);
 router.use(apiLimiter);
 
+/** @route POST /api/incidents
+ * @desc Create a new incident
+ * @access Private
+ */
 router.post('/', validate(createIncidentSchema), createIncident);
+
+/** @route GET /api/incidents
+ * @desc Get all incidents
+ * @access Private
+ */
 router.get('/', getIncidents);
+
+/** @route GET /api/incidents/:id
+ * @desc Get incident by ID
+ * @access Private
+ */
 router.get('/:id', getIncidentById);
+
+/** @route PATCH /api/incidents/:id/status
+ * @desc Update incident status
+ * @access Private
+ */
 router.patch('/:id/status', validate(updateStatusSchema), updateIncidentStatus);
+
+/** @route PATCH /api/incidents/:id/assign
+ * @desc Assign users to an incident
+ * @access Private
+ */
 router.patch('/:id/assign', validate(assignUsersSchema), assignUsers);
 
 // Nested timeline routes under incidents/:id/updates
