@@ -1,5 +1,6 @@
 import { ZodError } from 'zod';
 import AppError from '../utils/appError.js';
+import { logger } from '../utils/logger.js';
 import mongoose from 'mongoose';
 
 const mapZodErrors = (issues) =>
@@ -13,6 +14,7 @@ export default function errorHandler(error, req, res, next) {
     return next(error);
   }
 
+  logger.error(error);
   if (error instanceof mongoose.Error.CastError) {
     return res.status(400).json({
       message: 'Invalid ID format',
