@@ -455,3 +455,9 @@ export const resendVerificationEmail = async (req, res, next) => {
   }
 };
 
+export const getCurrentUser = async (req, res) => {
+  return res.status(200).json({
+    user: req.user,
+  });
+};
+

@@ -10,6 +10,9 @@ import { fadeUp } from '@/components/motion/variants';
 import { toast } from 'sonner';
 import * as api from '@/lib/api';
 
+import { useAuthStore } from '@/store/authStore';
+import { useEffect } from 'react';
+
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');

@@ -68,24 +68,53 @@ export default function InteractiveGrid({ cellSize = 48 }) {
       return [clientX - r.left, clientY - r.top];
     }
 
+    let viewportX = -1, viewportY = -1;
+
     const handleMouseMove = (e) => {
-      const [x, y] = toCanvas(e);
-      onMove(x, y);
+      viewportX = e.clientX;
+      viewportY = e.clientY;
     };
 
     const handleTouchMove = (e) => {
-      const [x, y] = toCanvas(e);
-      onMove(x, y);
+      viewportX = e.touches?.[0]?.clientX ?? -1;
+      viewportY = e.touches?.[0]?.clientY ?? -1;
     };
 
-    container.addEventListener('mousemove', handleMouseMove);
-    container.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
     window.addEventListener('resize', resize);
 
     function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
+    let sweepT = 0;
     function draw() {
       const now = performance.now();
+      
+      // Interaction tracking
+      const r = canvas.getBoundingClientRect();
+      const isVisible = r.top < window.innerHeight && r.bottom > 0;
+
+      if (isVisible) {
+        if (viewportX !== -1) {
+          // highlight under cursor
+          onMove(viewportX - r.left, viewportY - r.top);
+        } else {
+          // auto-sweep if mouse never moved
+          sweepT += 0.01;
+          const sx = (Math.sin(sweepT) * 0.5 + 0.5) * canvas.width;
+          const sy = (Math.cos(sweepT * 0.7) * 0.5 + 0.5) * canvas.height;
+          light(sx, sy);
+        }
+
+        // ambient glimmers (increased frequency)
+        if (Math.random() < 0.08) {
+          const rc = Math.floor(Math.random() * cells.length);
+          if (cells[rc] && !cells[rc].litAt) {
+            cells[rc].litAt = now;
+          }
+        }
+      }
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (const cell of cells) {
@@ -123,8 +152,8 @@ export default function InteractiveGrid({ cellSize = 48 }) {
     draw();
 
     return () => {
-      container.removeEventListener('mousemove', handleMouseMove);
-      container.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(animationFrameId);
     };
