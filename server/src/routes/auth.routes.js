@@ -5,9 +5,16 @@ import {
   logout,
   refreshAccessToken,
   googleCallback,
+  forgotPassword,
+  resetPassword,
 } from '../controllers/auth.controller.js';
 import validate from '../middlewares/validate.middleware.js';
-import { loginSchema, registerSchema } from '../validators/auth.validator.js';
+import {
+  loginSchema,
+  registerSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from '../validators/auth.validator.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import passport from 'passport';
 import { authLimiter } from '../middlewares/rateLimit.middleware.js';
@@ -65,5 +72,24 @@ router.get(
   }),
   googleCallback
 );
+
+/*
+    @route   POST /api/auth/forgot-password
+    @desc    Send password reset email
+    @access  Public
+*/
+router.post(
+  '/forgot-password',
+  authLimiter,
+  validate(forgotPasswordSchema),
+  forgotPassword
+);
+
+/*
+    @route   POST /api/auth/reset-password
+    @desc    Reset password using token
+    @access  Public
+*/
+router.post('/reset-password', validate(resetPasswordSchema), resetPassword);
 
 export default router;

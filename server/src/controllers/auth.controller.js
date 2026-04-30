@@ -1,8 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { User } from '../models/user.model.js';
 import { config } from '../config/config.js';
 import AppError from '../utils/appError.js';
+import { sendPasswordResetEmail } from '../services/mail.service.js';
 
 const cookieOptions = {
   httpOnly: true,
@@ -215,6 +217,92 @@ export const googleCallback = async (req, res, next) => {
     });
 
     return res.redirect(config.FRONTEND_URL);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      throw new AppError('Email is required', 400);
+    }
+
+    const user = await User.findOne({ email });
+
+    // For security, always return success message
+    if (!user) {
+      return res.status(200).json({
+        message: 'If an account exists with that email, a reset link was sent.',
+      });
+    }
+
+    // Generate 32-byte hex token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    // Hash it and store in DB
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await user.save({ validateBeforeSave: false });
+
+    // Send email
+    await sendPasswordResetEmail(email, user.name, resetToken);
+
+    return res.status(200).json({
+      message: 'If an account exists with that email, a reset link was sent.',
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      throw new AppError('Token and password are required', 400);
+    }
+
+    // Hash the incoming token to match what's in DB
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordTokenExpires: { $gt: Date.now() },
+    }).select('+password');
+
+    if (!user) {
+      throw new AppError('Invalid or expired reset token', 400);
+    }
+
+    // Check if new password is the same as the old one
+    const isSamePassword = await user.comparePassword(password);
+    if (isSamePassword) {
+      throw new AppError(
+        'New password cannot be the same as your current password.',
+        400
+      );
+    }
+
+    // Update password (pre-save hook will hash it)
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordTokenExpires = undefined;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Password reset successfully. You can now log in.',
+    });
   } catch (error) {
     return next(error);
   }
