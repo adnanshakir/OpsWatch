@@ -3,11 +3,25 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 // ─── Auth routes — strict (prevent brute force) ───
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
+  max: 15,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: 'Too many requests, please try again after 15 minutes.',
+    });
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// ─── Reset password — strict (prevent token reuse) ───
+export const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
   max: 5,
   handler: (req, res) => {
     res.status(429).json({
       success: false,
-      message: 'Too many auth attempts, please try again later.',
+      message: 'Too many reset attempts, please try again after 15 minutes.',
     });
   },
   standardHeaders: true,

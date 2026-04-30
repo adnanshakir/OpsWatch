@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import validate from '../middlewares/validate.middleware.js';
-import { authenticate } from '../middlewares/auth.middleware.js';
+import { authenticate, requireVerification } from '../middlewares/auth.middleware.js';
 import {
   assignUsersSchema,
   createIncidentSchema,
@@ -22,11 +22,26 @@ const router = Router();
 router.use(authenticate);
 router.use(apiLimiter);
 
-router.post('/', validate(createIncidentSchema), createIncident);
+router.post(
+  '/',
+  requireVerification,
+  validate(createIncidentSchema),
+  createIncident
+);
 router.get('/', getIncidents);
 router.get('/:id', getIncidentById);
-router.patch('/:id/status', validate(updateStatusSchema), updateIncidentStatus);
-router.patch('/:id/assign', validate(assignUsersSchema), assignUsers);
+router.patch(
+  '/:id/status',
+  requireVerification,
+  validate(updateStatusSchema),
+  updateIncidentStatus
+);
+router.patch(
+  '/:id/assign',
+  requireVerification,
+  validate(assignUsersSchema),
+  assignUsers
+);
 
 // Nested timeline routes under incidents/:id/updates
 router.use('/:id/updates', updateRoutes);

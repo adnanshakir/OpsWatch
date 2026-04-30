@@ -52,4 +52,17 @@ export const resetPasswordSchema = z.object({
     .min(8, { message: messages.passwordInvalid }),
 });
 
+export const verifyEmailSchema = z.object({
+  token: z.string({ required_error: 'Token is required' }).min(1),
+});
+
+export const resendVerificationSchema = z.object({
+  email: z
+    .string({ required_error: messages.emailRequired })
+    .trim()
+    .toLowerCase()
+    .min(1, { message: messages.emailRequired })
+    .email({ message: messages.emailInvalid }),
+});
+
 export { messages as authMessages };

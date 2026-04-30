@@ -65,6 +65,26 @@ const userSchema = new mongoose.Schema(
       index: true,
     },
 
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    verificationToken: {
+      type: String,
+      select: false,
+    },
+
+    verificationExpires: {
+      type: Date,
+      select: false,
+    },
+
+    lastVerificationSentAt: {
+      type: Date,
+      default: null,
+    },
+
     resetPasswordToken: {
       type: String,
       select: false,
@@ -84,6 +104,8 @@ const userSchema = new mongoose.Schema(
         delete ret.refreshToken;
         delete ret.resetPasswordToken;
         delete ret.resetPasswordExpires;
+        delete ret.verificationToken;
+        delete ret.verificationExpires;
         return ret;
       },
     },
