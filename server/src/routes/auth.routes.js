@@ -5,12 +5,26 @@ import {
   logout,
   refreshAccessToken,
   googleCallback,
+  forgotPassword,
+  resetPassword,
+  verifyEmail,
+  resendVerificationEmail,
 } from '../controllers/auth.controller.js';
 import validate from '../middlewares/validate.middleware.js';
-import { loginSchema, registerSchema } from '../validators/auth.validator.js';
+import {
+  loginSchema,
+  registerSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  verifyEmailSchema,
+  resendVerificationSchema,
+} from '../validators/auth.validator.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import passport from 'passport';
-import { authLimiter } from '../middlewares/rateLimit.middleware.js';
+import {
+  authLimiter,
+  strictLimiter,
+} from '../middlewares/rateLimit.middleware.js';
 
 const router = Router();
 
@@ -64,6 +78,54 @@ router.get(
     failureRedirect: '/login',
   }),
   googleCallback
+);
+
+/*
+    @route   POST /api/auth/forgot-password
+    @desc    Send password reset email
+    @access  Public
+*/
+router.post(
+  '/forgot-password',
+  strictLimiter,
+  validate(forgotPasswordSchema),
+  forgotPassword
+);
+
+/*
+    @route   POST /api/auth/reset-password
+    @desc    Reset password using token
+    @access  Public
+*/
+router.post(
+  '/reset-password',
+  strictLimiter,
+  validate(resetPasswordSchema),
+  resetPassword
+);
+
+/*
+    @route   POST /api/auth/verify-email
+    @desc    Verify user email using token
+    @access  Public
+*/
+router.post(
+  '/verify-email',
+  authLimiter,
+  validate(verifyEmailSchema),
+  verifyEmail
+);
+
+/*
+    @route   POST /api/auth/resend-verification
+    @desc    Resend verification email
+    @access  Public
+*/
+router.post(
+  '/resend-verification',
+  strictLimiter,
+  validate(resendVerificationSchema),
+  resendVerificationEmail
 );
 
 export default router;

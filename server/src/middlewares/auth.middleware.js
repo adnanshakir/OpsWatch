@@ -40,4 +40,21 @@ export const authenticate = async (req, res, next) => {
   }
 };
 
+export const requireVerification = (req, res, next) => {
+  if (!req.user) {
+    return next(new AppError('Authentication required', 401));
+  }
+
+  if (!req.user.isVerified) {
+    return next(
+      new AppError(
+        'Email verification required for full access. Please check your inbox.',
+        403
+      )
+    );
+  }
+
+  next();
+};
+
 export default authenticate;
