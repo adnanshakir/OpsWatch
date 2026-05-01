@@ -10,15 +10,15 @@ const SecurityShieldShowcase = () => {
           opacity: [0.15, 0.3, 0.15],
           scale: [1, 1.2, 1],
         }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-brand-primary)]/20 blur-[60px]"
       />
 
-      <svg
-        width="160"
-        height="200"
-        viewBox="0 0 150 180"
-        fill="none"
+      <svg 
+        width="160" 
+        height="200" 
+        viewBox="0 0 150 180" 
+        fill="none" 
         xmlns="http://www.w3.org/2000/svg"
         className="relative z-10 transition-transform duration-500 group-hover:scale-105"
       >

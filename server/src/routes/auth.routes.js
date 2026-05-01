@@ -30,6 +30,13 @@ import {
 const router = Router();
 
 /*
+    @route   GET /api/auth/me
+    @desc    Get current authenticated user session
+    @access  Private
+*/
+router.get('/me', authenticate, getCurrentUser);
+
+/*
     @route   POST /api/auth/register
     @desc    Register a new user
     @access  Public
