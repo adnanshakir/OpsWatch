@@ -9,7 +9,7 @@ import {
   resetPassword,
   verifyEmail,
   resendVerificationEmail,
-  getMe
+  getMe,
 } from '../controllers/auth.controller.js';
 import validate from '../middlewares/validate.middleware.js';
 import {
