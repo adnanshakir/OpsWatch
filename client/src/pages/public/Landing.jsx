@@ -551,17 +551,17 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* giant cut wordmark */}
+        {/* giant wordmark */}
         <div
           aria-hidden
-          className="relative mt-2 select-none"
+          className="relative mt-12 select-none"
         >
           <div
             className="whitespace-nowrap text-center font-semibold leading-[0.78] text-[var(--color-foreground)]"
             style={{
-              fontSize: 'clamp(4.5rem, 21vw, 20rem)',
+              fontSize: 'clamp(4.5rem, 18vw, 20rem)',
               letterSpacing: '-0.06em',
-              transform: 'translateY(18%)',
+              transform: 'translateY(10%)',
             }}
           >
             {APP_NAME}
