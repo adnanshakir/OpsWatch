@@ -3,13 +3,17 @@ import {
   getIncidentSummary,
   getIncidentRootCause,
 } from '../controllers/ai.controller.js';
-import { authenticate } from '../middlewares/auth.middleware.js';
+import {
+  authenticate,
+  requireVerification,
+} from '../middlewares/auth.middleware.js';
 import { apiLimiter } from '../middlewares/rateLimit.middleware.js';
 
 const router = Router();
 
 // Protect all AI routes
 router.use(authenticate);
+router.use(requireVerification);
 router.use(apiLimiter);
 
 /**
