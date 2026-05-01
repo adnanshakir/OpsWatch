@@ -33,27 +33,38 @@ const http = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// On 401, try the refresh-token endpoint once and retry the original request.
-// Prevents an infinite refresh loop with the `_retried` flag.
+// Global 401 interceptor for session management
 http.interceptors.response.use(
-  (r) => r,
+  (res) => res,
   async (err) => {
     const original = err.config;
+
+    // 1. Try refreshing token if it's a 401 and not an auth route itself
     if (
       err.response?.status === 401 &&
       original &&
       !original._retried &&
-      !original.url.includes('/auth/')
+      !original.url.includes('/auth/login') &&
+      !original.url.includes('/auth/register') &&
+      !original.url.includes('/auth/refresh-token')
     ) {
       original._retried = true;
       try {
-        await http.post('/auth/refresh-token');
+        await axios.post('/api/auth/refresh-token'); // use raw axios to avoid interceptor loop
         return http(original);
-      } catch {
-        // refresh failed — let the original 401 propagate
+      } catch (refreshErr) {
+        // Refresh failed -> logout
+        useAuthStore.getState().setUser(null);
+        return Promise.reject(refreshErr);
       }
     }
-    throw err;
+
+    // 2. If it's a 401 and we can't refresh, clear state
+    if (err.response?.status === 401) {
+      useAuthStore.getState().setUser(null);
+    }
+
+    return Promise.reject(err);
   }
 );
 
@@ -360,9 +371,10 @@ export async function me() {
     const user = toUser(data.user || data);
     useAuthStore.getState().setUser(user);
     return user;
-  } catch {
-    // Backend doesn't have /me yet, or session is invalid — fall back to local.
-    return useAuthStore.getState().user || null;
+  } catch (error) {
+    // If session is invalid or endpoint fails, clear local state
+    useAuthStore.getState().setUser(null);
+    return null;
   }
 }
 

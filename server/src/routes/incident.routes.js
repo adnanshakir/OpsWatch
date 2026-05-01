@@ -1,10 +1,7 @@
 import { Router } from 'express';
 import validate from '../middlewares/validate.middleware.js';
-import {
-  authenticate,
-  requireVerification,
-  requireWorkspace,
-} from '../middlewares/auth.middleware.js';
+import { requireWorkspace } from '../middlewares/workspace.middleware.js';
+import { authenticate, requireVerification } from '../middlewares/auth.middleware.js';
 import {
   assignUsersSchema,
   createIncidentSchema,

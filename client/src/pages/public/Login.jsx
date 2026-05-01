@@ -11,6 +11,9 @@ import { toast } from 'sonner';
 import * as api from '@/lib/api';
 import { enableDemoMode } from '@/lib/demo';
 
+import { useAuthStore } from '@/store/authStore';
+import { useEffect } from 'react';
+
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');

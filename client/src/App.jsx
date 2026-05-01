@@ -13,14 +13,50 @@ import Settings from '@/pages/app/Settings';
 import IncidentDetail from '@/pages/incident/IncidentDetail';
 import Postmortem from '@/pages/incident/Postmortem';
 
+import { useEffect } from 'react';
+import { useAuthStore } from '@/store/authStore';
+import { auth } from '@/lib/api';
+
+function PublicRoute({ children }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isInitialCheckDone = useAuthStore((s) => s.isInitialCheckDone);
+
+  if (isAuthenticated) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+
+  if (!isInitialCheckDone) {
+    return null; // Keep screen clean while checking session
+  }
+
+  return children;
+}
+
 export default function App() {
+  const setUser = useAuthStore((s) => s.setUser);
+  const setInitialCheckDone = useAuthStore((s) => s.setInitialCheckDone);
+
+  useEffect(() => {
+    // Check session on mount to sync with backend cookies
+    auth.me()
+      .then(user => setUser(user))
+      .finally(() => setInitialCheckDone(true));
+
+    // Session heartbeat: periodically verify session is still valid
+    const interval = setInterval(() => {
+      auth.me();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [setUser, setInitialCheckDone]);
+
   return (
     <>
       <Routes>
         {/* Public */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
         <Route path="/status/:teamSlug" element={<PublicStatus />} />
 
         {/* App shell */}
