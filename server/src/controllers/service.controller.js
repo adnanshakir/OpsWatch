@@ -1,4 +1,5 @@
 import { Service } from '../models/service.model.js';
+import { Incident } from '../models/incident.model.js';
 import AppError from '../utils/appError.js';
 
 export const createService = async (req, res, next) => {
@@ -86,6 +87,90 @@ export const getServiceById = async (req, res, next) => {
     }
 
     return res.status(200).json(service);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const updateService = async (req, res, next) => {
+  try {
+    const allowed = [
+      'name',
+      'description',
+      'type',
+      'techStack',
+      'environment',
+      'status',
+      'repoUrl',
+      'liveUrl',
+    ];
+
+    const hasValidField = Object.keys(req.body).some((key) =>
+      allowed.includes(key)
+    );
+
+    if (!hasValidField) {
+      throw new AppError('No valid fields provided for update', 400);
+    }
+
+    const service = await Service.findOne({
+      _id: req.params.id,
+      workspace: req.user.workspace,
+    });
+
+    if (!service) {
+      throw new AppError('Service not found', 404);
+    }
+
+    allowed.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        service[field] = req.body[field];
+      }
+    });
+
+    try {
+      await service.save();
+    } catch (err) {
+      if (err.code === 11000) {
+        throw new AppError('Service already exists in this workspace', 400);
+      }
+      throw err;
+    }
+
+    await service.populate('createdBy', 'name email');
+
+    return res.status(200).json(service);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const deleteService = async (req, res, next) => {
+  try {
+    const service = await Service.findOne({
+      _id: req.params.id,
+      workspace: req.user.workspace,
+    });
+
+    if (!service) {
+      throw new AppError('Service not found', 404);
+    }
+
+    const inUse = await Incident.exists({
+      service: service._id,
+      workspace: req.user.workspace,
+    });
+
+    if (inUse) {
+      throw new AppError(
+        'Service is used in incidents and cannot be deleted',
+        400
+      );
+    }
+
+    await service.deleteOne();
+
+    return res.status(200).json({ message: 'Service deleted successfully' });
   } catch (error) {
     return next(error);
   }

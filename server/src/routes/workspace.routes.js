@@ -1,9 +1,14 @@
 import { Router } from 'express';
 import { authenticate } from '../middlewares/auth.middleware.js';
+import { requireWorkspace } from '../middlewares/auth.middleware.js';
 import {
   createWorkspace,
   joinWorkspace,
   updateUserRole,
+  getWorkspace,
+  getWorkspaceMembers,
+  regenerateInviteCode,
+  deleteWorkspace,
 } from '../controllers/workspace.controller.js';
 import { apiLimiter } from '../middlewares/rateLimit.middleware.js';
 
@@ -32,6 +37,34 @@ router.post('/join', joinWorkspace);
  * @desc Update user role in workspace (owner only)
  * @access Private
  */
-router.patch('/role', updateUserRole);
+router.patch('/role', requireWorkspace, updateUserRole);
+
+/**
+ * @route GET /api/workspace/me
+ * @desc Get current user's workspace details
+ * @access Private
+ */
+router.get('/me', requireWorkspace, getWorkspace);
+
+/**
+ * @route GET /api/workspace/members
+ * @desc Get all members in the current workspace
+ * @access Private
+ */
+router.get('/members', requireWorkspace, getWorkspaceMembers);
+
+/**
+ * @route PATCH /api/workspace/invite-code
+ * @desc Regenerate workspace invite code (owner only)
+ * @access Private
+ */
+router.patch('/invite-code', requireWorkspace, regenerateInviteCode);
+
+/**
+ * @route DELETE /api/workspace
+ * @desc Delete workspace and all related data (owner only)
+ * @access Private
+ */
+router.delete('/', requireWorkspace, deleteWorkspace);
 
 export default router;
