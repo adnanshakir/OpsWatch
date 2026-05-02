@@ -23,6 +23,14 @@ const workspaceSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    systemContext: {
+      projectName: { type: String, trim: true },
+      liveUrl: { type: String, trim: true },
+      stackPreset: { type: String, trim: true },
+      techStack: [{ type: String, trim: true }],
+      integrations: [{ type: String, trim: true }],
+      repoUrl: { type: String, trim: true },
+    },
   },
   {
     timestamps: true,

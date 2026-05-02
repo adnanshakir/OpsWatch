@@ -22,11 +22,6 @@ const serviceSchema = new mongoose.Schema(
       enum: ['production', 'staging', 'development'],
       default: 'production',
     },
-    status: {
-      type: String,
-      enum: ['active', 'maintenance', 'deprecated'],
-      default: 'active',
-    },
     techStack: [
       {
         type: String,

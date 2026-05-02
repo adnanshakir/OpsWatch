@@ -1,5 +1,6 @@
 import { Incident } from '../models/incident.model.js';
 import { Update } from '../models/update.model.js';
+import { Workspace } from '../models/workspace.model.js';
 import AppError from '../utils/appError.js';
 import { generateAIResponse } from '../services/ai.service.js';
 
@@ -20,13 +21,18 @@ export const getIncidentSummary = async (req, res, next) => {
       throw new AppError('Incident not found', 404);
     }
 
-    const recentUpdates = await Update.find({
-      incident: id,
-      workspace: req.user.workspace,
-    })
-      .sort({ createdAt: -1 })
-      .limit(5);
+    const [recentUpdates, workspace] = await Promise.all([
+      Update.find({
+        incident: id,
+        workspace: req.user.workspace,
+      })
+        .sort({ createdAt: -1 })
+        .limit(5),
+      Workspace.findById(req.user.workspace).select('systemContext'),
+    ]);
     recentUpdates.reverse();
+
+    const ctx = workspace?.systemContext ?? {};
 
     const prompt = `
 You are an incident management AI.
@@ -40,6 +46,12 @@ Rules:
 - Professional tone
 - **Plain text ONLY (NO Markdown, no **, no #)**
 - **Single paragraph only (no newlines)**
+
+System Context:
+  Project: ${ctx.projectName || 'Not specified'}
+  Stack: ${ctx.stackPreset || 'Not specified'}
+  Tech Stack: ${ctx.techStack?.join(', ') || 'Not specified'}
+  Integrations: ${ctx.integrations?.join(', ') || 'None'}
 
 Service:
   Name: ${incident.service?.name ?? 'Unknown'}
@@ -87,13 +99,18 @@ export const getIncidentRootCause = async (req, res, next) => {
       throw new AppError('Incident not found', 404);
     }
 
-    const recentUpdates = await Update.find({
-      incident: id,
-      workspace: req.user.workspace,
-    })
-      .sort({ createdAt: -1 })
-      .limit(5);
+    const [recentUpdates, workspace] = await Promise.all([
+      Update.find({
+        incident: id,
+        workspace: req.user.workspace,
+      })
+        .sort({ createdAt: -1 })
+        .limit(5),
+      Workspace.findById(req.user.workspace).select('systemContext'),
+    ]);
     recentUpdates.reverse();
+
+    const ctx = workspace?.systemContext ?? {};
 
     const prompt = `
 You are an incident analysis AI.
@@ -107,6 +124,12 @@ Rules:
 - Be concise.
 - Focus on technical causes based on the service type, tech stack, and environment.
 - Consider the environment: a ${incident.service?.environment ?? 'production'} environment may have different failure patterns.
+
+System Context:
+  Project: ${ctx.projectName || 'Not specified'}
+  Stack: ${ctx.stackPreset || 'Not specified'}
+  Tech Stack: ${ctx.techStack?.join(', ') || 'Not specified'}
+  Integrations: ${ctx.integrations?.join(', ') || 'None'}
 
 Service:
   Name: ${incident.service?.name ?? 'Unknown'}

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate } from '../middlewares/auth.middleware.js';
-import { requireWorkspace } from '../middlewares/auth.middleware.js';
+import { requireWorkspace } from '../middlewares/workspace.middleware.js';
 import {
   createWorkspace,
   joinWorkspace,
@@ -9,7 +9,10 @@ import {
   getWorkspaceMembers,
   regenerateInviteCode,
   deleteWorkspace,
+  updateWorkspaceContext,
 } from '../controllers/workspace.controller.js';
+import validate from '../middlewares/validate.middleware.js';
+import { systemContextSchema } from '../validators/workspace.validator.js';
 import { apiLimiter } from '../middlewares/rateLimit.middleware.js';
 
 const router = Router();
@@ -59,6 +62,18 @@ router.get('/members', requireWorkspace, getWorkspaceMembers);
  * @access Private
  */
 router.patch('/invite-code', requireWorkspace, regenerateInviteCode);
+
+/**
+ * @route PATCH /api/workspace/context
+ * @desc Update workspace system context (owner/admin only)
+ * @access Private
+ */
+router.patch(
+  '/context',
+  requireWorkspace,
+  validate(systemContextSchema),
+  updateWorkspaceContext
+);
 
 /**
  * @route DELETE /api/workspace
