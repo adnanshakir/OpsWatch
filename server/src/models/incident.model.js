@@ -42,13 +42,6 @@ const incidentSchema = new mongoose.Schema(
       index: true,
     },
 
-    workspace: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Workspace',
-      required: true,
-      index: true,
-    },
-
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
