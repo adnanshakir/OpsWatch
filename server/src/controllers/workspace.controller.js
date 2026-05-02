@@ -4,6 +4,7 @@ import { Service } from '../models/service.model.js';
 import { Incident } from '../models/incident.model.js';
 import { Update } from '../models/update.model.js';
 import AppError from '../utils/appError.js';
+import { sendWorkspaceInvite } from '../services/mail.service.js';
 
 const generateInviteCode = () =>
   Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -170,6 +171,32 @@ export const regenerateInviteCode = async (req, res, next) => {
   }
 };
 
+export const inviteMember = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (req.user.role !== 'owner' && req.user.role !== 'admin') {
+      throw new AppError('Only owners and admins can invite members', 403);
+    }
+
+    const workspace = await Workspace.findById(req.user.workspace);
+    if (!workspace) throw new AppError('Workspace not found', 404);
+
+    // In a real app, we might create a PendingInvite model.
+    // For now, we just send the email with the workspace's invite code.
+    await sendWorkspaceInvite(
+      email,
+      req.user.name,
+      workspace.name,
+      workspace.inviteCode
+    );
+
+    return res.status(200).json({ message: 'Invitation sent' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const deleteWorkspace = async (req, res, next) => {
   try {
     if (req.user.role !== 'owner') {
@@ -201,6 +228,20 @@ export const deleteWorkspace = async (req, res, next) => {
     await Workspace.findByIdAndDelete(workspaceId);
 
     return res.status(200).json({ message: 'Workspace deleted successfully' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getWorkspaceUsers = async (req, res, next) => {
+  try {
+    if (!req.user.workspace) throw new AppError('No workspace', 400);
+
+    const users = await User.find({ workspace: req.user.workspace }).select(
+      'name email role avatar lastSeen online'
+    );
+
+    return res.status(200).json(users);
   } catch (error) {
     return next(error);
   }

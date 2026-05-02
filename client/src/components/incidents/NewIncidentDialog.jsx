@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react'; // eslint-disable-line no-unused-vars
+import { motion, AnimatePresence } from 'motion/react';
+const Motion = motion;
 import { Sparkles, Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -180,7 +181,7 @@ export function NewIncidentDialog({ open, onOpenChange }) {
                       <Icon className="h-4 w-4" style={{ color: s.color }} />
                       <AnimatePresence>
                         {active && (
-                          <motion.span
+                          <Motion.span
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0 }}
@@ -188,7 +189,7 @@ export function NewIncidentDialog({ open, onOpenChange }) {
                             style={{ background: s.color }}
                           >
                             <Check className="h-2.5 w-2.5 text-white" />
-                          </motion.span>
+                          </Motion.span>
                         )}
                       </AnimatePresence>
                     </div>
@@ -304,7 +305,7 @@ export function NewIncidentDialog({ open, onOpenChange }) {
 
             <AnimatePresence>
               {suggestions && (
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
@@ -312,7 +313,7 @@ export function NewIncidentDialog({ open, onOpenChange }) {
                   className="mt-3 space-y-2 overflow-hidden"
                 >
                   {suggestions.map((s, i) => (
-                    <motion.div
+                    <Motion.div
                       key={i}
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -340,9 +341,9 @@ export function NewIncidentDialog({ open, onOpenChange }) {
                           ))}
                         </div>
                       )}
-                    </motion.div>
+                    </Motion.div>
                   ))}
-                </motion.div>
+                </Motion.div>
               )}
             </AnimatePresence>
           </div>

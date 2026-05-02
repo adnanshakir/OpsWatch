@@ -260,7 +260,9 @@ export async function getService(id) {
  * Toggles service health: operational | degraded | down | maintenance.
  */
 export async function updateServiceStatus(serviceId, status) {
-  const { data } = await http.patch(`/services/${serviceId}/status`, { status });
+  const { data } = await http.patch(`/services/${serviceId}/status`, {
+    status,
+  });
   return data;
 }
 
@@ -378,6 +380,9 @@ export async function joinWorkspace({ inviteCode }) {
 export const workspace = {
   create: createWorkspace,
   join: joinWorkspace,
+  invite: (payload) => http.post('/workspace/invite', payload),
+  listUsers: () => http.get('/workspace/users').then((res) => res.data),
+  updateRole: (payload) => http.patch('/workspace/role', payload),
 };
 export const services = {
   list: listServices,
@@ -513,7 +518,7 @@ export async function me() {
     const user = toUser(data.user || data);
     useAuthStore.getState().setUser(user);
     return user;
-  } catch (error) {
+  } catch {
     // If session is invalid or endpoint fails, clear local state
     useAuthStore.getState().setUser(null);
     return null;

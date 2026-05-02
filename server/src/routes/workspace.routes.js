@@ -9,6 +9,8 @@ import {
   getWorkspaceMembers,
   regenerateInviteCode,
   deleteWorkspace,
+  inviteMember,
+  getWorkspaceUsers,
 } from '../controllers/workspace.controller.js';
 import { apiLimiter } from '../middlewares/rateLimit.middleware.js';
 
@@ -59,6 +61,20 @@ router.get('/members', requireWorkspace, getWorkspaceMembers);
  * @access Private
  */
 router.patch('/invite-code', requireWorkspace, regenerateInviteCode);
+
+/**
+ * @route POST /api/workspace/invite
+ * @desc Send email invite to a user (owner/admin only)
+ * @access Private
+ */
+router.post('/invite', requireWorkspace, inviteMember);
+
+/**
+ * @route GET /api/workspace/users
+ * @desc Get all users in the current workspace
+ * @access Private
+ */
+router.get('/users', requireWorkspace, getWorkspaceUsers);
 
 /**
  * @route DELETE /api/workspace

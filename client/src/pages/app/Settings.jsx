@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react'; // eslint-disable-line no-unused-vars
+import { motion } from 'motion/react';
+const Motion = motion;
 import { toast } from 'sonner';
 import { CheckCircle2, LogOut } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -60,13 +61,13 @@ export default function Settings() {
       await auth.logout();
       toast.success('Signed out successfully');
       navigate('/', { replace: true });
-    } catch (err) {
+    } catch {
       toast.error('Logout failed');
     }
   };
 
   return (
-    <motion.div
+    <Motion.div
       variants={fadeUp}
       initial="hidden"
       animate="visible"
@@ -330,7 +331,7 @@ export default function Settings() {
           </Card>
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 }
 

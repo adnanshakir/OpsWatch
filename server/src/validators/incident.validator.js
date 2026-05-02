@@ -1,9 +1,5 @@
 import { z } from 'zod';
 
-const objectIdSchema = z
-  .string()
-  .regex(/^[0-9a-fA-F]{24}$/, { message: 'Invalid ObjectId' });
-
 export const createIncidentSchema = z.object({
   title: z
     .string()
@@ -26,6 +22,5 @@ export const updateStatusSchema = z.object({
 });
 
 export const assignUsersSchema = z.object({
-  // Accept only valid user ObjectIds when provided.
-  assignedTo: z.array(objectIdSchema).min(1).optional(),
+  assignedTo: z.array(z.string()).min(1).optional(),
 });
