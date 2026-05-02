@@ -126,13 +126,13 @@ ${recentUpdates.length > 0 ? recentUpdates.map((u) => '- ' + u.message).join('\n
 `;
 
     const aiResponse = await generateAIResponse(prompt);
-    
+
     let analysis;
     try {
       // Clean the response in case AI adds markdown blocks
       const cleanJson = aiResponse.replace(/```json|```/g, '').trim();
       analysis = JSON.parse(cleanJson);
-      
+
       if (!Array.isArray(analysis)) {
         analysis = [aiResponse]; // Fallback if it's not an array
       }

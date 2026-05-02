@@ -1,5 +1,8 @@
 import { Workspace } from '../models/workspace.model.js';
 import { User } from '../models/user.model.js';
+import { Service } from '../models/service.model.js';
+import { Incident } from '../models/incident.model.js';
+import { Update } from '../models/update.model.js';
 import AppError from '../utils/appError.js';
 
 const generateInviteCode = () =>
@@ -75,7 +78,10 @@ export const updateUserRole = async (req, res, next) => {
     const user = await User.findById(userId);
     if (!user) throw new AppError('User not found', 404);
 
-    if (user.workspace?.toString() !== req.user.workspace.toString()) {
+    if (
+      user.workspace?.toString() !==
+      (req.user.workspace._id || req.user.workspace).toString()
+    ) {
       throw new AppError('User not in same workspace', 400);
     }
 
@@ -93,6 +99,108 @@ export const updateUserRole = async (req, res, next) => {
     await user.save();
 
     return res.status(200).json({ message: 'Role updated' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getWorkspace = async (req, res, next) => {
+  try {
+    const workspace = await Workspace.findById(req.user.workspace).select(
+      '_id name slug inviteCode createdBy'
+    );
+
+    if (!workspace) {
+      throw new AppError('Workspace not found', 404);
+    }
+
+    return res.status(200).json(workspace);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getWorkspaceMembers = async (req, res, next) => {
+  try {
+    const members = await User.find({ workspace: req.user.workspace })
+      .select('_id name email role')
+      .lean();
+
+    const rolePriority = {
+      owner: 1,
+      admin: 2,
+      member: 3,
+    };
+
+    members.sort((a, b) => {
+      return rolePriority[a.role] - rolePriority[b.role];
+    });
+
+    return res.status(200).json({ data: members });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const regenerateInviteCode = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'owner') {
+      throw new AppError('Forbidden', 403);
+    }
+
+    const workspace = await Workspace.findById(req.user.workspace);
+    if (!workspace) {
+      throw new AppError('Workspace not found', 404);
+    }
+
+    let newCode;
+    let exists;
+
+    do {
+      newCode = generateInviteCode();
+      exists = await Workspace.findOne({ inviteCode: newCode });
+    } while (exists);
+
+    workspace.inviteCode = newCode;
+    await workspace.save();
+
+    return res.status(200).json({ inviteCode: workspace.inviteCode });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const deleteWorkspace = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'owner') {
+      throw new AppError('Forbidden', 403);
+    }
+
+    const workspaceId = req.user.workspace;
+
+    if (!workspaceId) {
+      throw new AppError('No workspace assigned', 400);
+    }
+
+    const workspace = await Workspace.findById(workspaceId);
+    if (!workspace) {
+      throw new AppError('Workspace not found', 404);
+    }
+
+    // Cascade delete all workspace-related data, then remove workspace itself
+    await Promise.all([
+      Update.deleteMany({ workspace: workspaceId }),
+      Incident.deleteMany({ workspace: workspaceId }),
+      Service.deleteMany({ workspace: workspaceId }),
+      User.updateMany(
+        { workspace: workspaceId },
+        { $unset: { workspace: '' }, role: 'member' }
+      ),
+    ]);
+
+    await Workspace.findByIdAndDelete(workspaceId);
+
+    return res.status(200).json({ message: 'Workspace deleted successfully' });
   } catch (error) {
     return next(error);
   }
