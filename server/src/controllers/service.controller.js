@@ -117,26 +117,6 @@ export const updateService = async (req, res, next) => {
       _id: req.params.id,
       workspace: req.user.workspace,
     });
-// FIX (2026-05-02): Toggle service health status from the Services page.
-// Used by the dashboard "operational/degraded/down/maintenance" pill — also
-// surfaces on the public status page. Workspace-scoped so cross-tenant
-// writes are blocked.
-export const updateServiceStatus = async (req, res, next) => {
-  try {
-    const { status } = req.body;
-    const allowed = ['operational', 'degraded', 'down', 'maintenance'];
-    if (!allowed.includes(status)) {
-      throw new AppError(
-        `Invalid status. Allowed: ${allowed.join(', ')}`,
-        400
-      );
-    }
-
-    const service = await Service.findOneAndUpdate(
-      { _id: req.params.id, workspace: req.user.workspace },
-      { status },
-      { new: true }
-    );
 
     if (!service) {
       throw new AppError('Service not found', 404);
@@ -158,6 +138,36 @@ export const updateServiceStatus = async (req, res, next) => {
     }
 
     await service.populate('createdBy', 'name email');
+
+    return res.status(200).json(service);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Toggle service health status from the Services page.
+// Used by the dashboard "operational/degraded/down/maintenance" pill — also
+// surfaces on the public status page. Workspace-scoped so cross-tenant writes are blocked.
+export const updateServiceStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    const validStatuses = ['operational', 'degraded', 'down', 'maintenance'];
+    if (!validStatuses.includes(status)) {
+      throw new AppError(
+        `Invalid status. Allowed: ${validStatuses.join(', ')}`,
+        400
+      );
+    }
+
+    const service = await Service.findOneAndUpdate(
+      { _id: req.params.id, workspace: req.user.workspace },
+      { status },
+      { new: true }
+    );
+
+    if (!service) {
+      throw new AppError('Service not found', 404);
+    }
 
     return res.status(200).json(service);
   } catch (error) {

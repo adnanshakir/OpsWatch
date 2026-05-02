@@ -321,3 +321,52 @@ export async function regeneratePostmortem() {
   await new Promise((r) => setTimeout(r, 1600 + Math.random() * 800));
   return { regeneratedAt: new Date().toISOString() };
 }
+
+/**
+ * Polish/improve an incident description using AI.
+ * Falls back to a prompt-augmented local rewrite if no Gemini key.
+ */
+export async function polishDescription(title, description) {
+  const key = import.meta.env.VITE_GEMINI_API_KEY;
+
+  if (key) {
+    try {
+      const prompt = `You are an expert SRE technical writer. Improve the following incident description to be clear, concise, and actionable for an on-call engineer.
+
+Incident title: ${title || '(untitled)'}
+Current description: ${description}
+
+Rules:
+- Keep it under 3 sentences
+- Mention symptoms, scope, and observed signals
+- Use technical but plain English
+- Do NOT add headers or markdown
+- Return ONLY the improved description text, nothing else`;
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.3 },
+          }),
+        }
+      );
+      if (!res.ok) throw new Error(`Gemini ${res.status}`);
+      const data = await res.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (text) return { polished: text, source: 'gemini' };
+    } catch (err) {
+      console.warn('[ai] gemini polish failed, using local:', err.message);
+    }
+  }
+
+  // Local fallback — deterministically enrich the description
+  await new Promise((r) => setTimeout(r, 900 + Math.random() * 600));
+  const base = description.trim();
+  const titleHint = title ? ` related to ${title}` : '';
+  const polished = `${base.endsWith('.') ? base : base + '.'} Issue${titleHint} is actively impacting users — scope and blast radius are being assessed. Engineers are investigating logs and monitoring dashboards for root cause signals.`;
+  return { polished, source: 'local' };
+}
