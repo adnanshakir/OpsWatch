@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, LogOut } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useIncidentsStore } from '@/store/incidentsStore';
 import { fadeUp } from '@/components/motion/variants';
 import { cn } from '@/lib/utils';
+import { auth } from '@/lib/api';
 
 const TABS = [
   { id: 'profile', label: 'Profile' },
@@ -48,17 +50,38 @@ const INTEGRATIONS = [
 ];
 
 export default function Settings() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState('profile');
   const user = useAuthStore((s) => s.user);
   const reset = useIncidentsStore((s) => s.resetSeed);
 
+  const handleLogout = async () => {
+    try {
+      await auth.logout();
+      toast.success('Signed out successfully');
+      navigate('/', { replace: true });
+    } catch (err) {
+      toast.error('Logout failed');
+    }
+  };
+
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mx-auto max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-        <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Manage your account, team, and integrations.
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
+          <p className="mt-1 text-sm text-[var(--color-muted)]">
+            Manage your account, team, and integrations.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="hidden md:flex"
+          onClick={handleLogout}
+        >
+          <LogOut className="mr-2 h-4 w-4" /> Sign out
+        </Button>
       </div>
 
       <div className="grid gap-8 md:grid-cols-[200px_1fr]">

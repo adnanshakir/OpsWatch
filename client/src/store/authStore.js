@@ -19,21 +19,24 @@ const initial = readStorage(STORAGE_KEY, null);
 export const useAuthStore = create((set) => ({
   user: initial,
   isAuthenticated: !!initial,
+  isInitialCheckDone: !initial,
+
+  setInitialCheckDone: (done) => set({ isInitialCheckDone: done }),
 
   /** Set the current user (call after login/register/me) */
   setUser: (user) => {
     if (user) {
       writeStorage(STORAGE_KEY, user);
-      set({ user, isAuthenticated: true });
+      set({ user, isAuthenticated: true, isInitialCheckDone: true });
     } else {
       removeStorage(STORAGE_KEY);
-      set({ user: null, isAuthenticated: false });
+      set({ user: null, isAuthenticated: false, isInitialCheckDone: true });
     }
   },
 
   /** Clear local auth (call after logout) */
   clear: () => {
     removeStorage(STORAGE_KEY);
-    set({ user: null, isAuthenticated: false });
+    set({ user: null, isAuthenticated: false, isInitialCheckDone: true });
   },
 }));

@@ -7,11 +7,6 @@ const serviceSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    description: {
-      type: String,
-      trim: true,
-      default: '',
-    },
     type: {
       type: String,
       required: true,
@@ -23,27 +18,6 @@ const serviceSchema = new mongoose.Schema(
         trim: true,
       },
     ],
-    environment: {
-      type: String,
-      enum: ['production', 'staging', 'dev'],
-      default: 'production',
-    },
-    status: {
-      type: String,
-      enum: ['active', 'inactive'],
-      default: 'active',
-    },
-    // Optional metadata
-    repoUrl: {
-      type: String,
-      trim: true,
-      default: '',
-    },
-    liveUrl: {
-      type: String,
-      trim: true,
-      default: '',
-    },
     workspace: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Workspace',

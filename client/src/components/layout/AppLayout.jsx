@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, Navigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { CommandPalette } from '@/components/shared/CommandPalette';
@@ -7,10 +7,18 @@ import { NewIncidentDialog } from '@/components/incidents/NewIncidentDialog';
 import { AmbientGlow } from '@/components/shared/AmbientGlow';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useUIStore } from '@/store/uiStore';
+import { useAuthStore } from '@/store/authStore';
 
 export function AppLayout() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { newIncidentOpen, setNewIncidentOpen } = useUIStore();
+
+  // Hooks must be called before any early returns
   useKeyboardShortcuts({ onCreateIncident: () => setNewIncidentOpen(true) });
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <div className="relative flex min-h-screen text-[var(--color-foreground)]">
