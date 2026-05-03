@@ -16,7 +16,7 @@ export default defineConfig({
       // Same-origin from the browser's POV → cookies are first-party,
       // so httpOnly auth cookies flow without CORS preflight pain.
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'https://ops-watch.vercel.app',
         changeOrigin: true,
         secure: false,
       },
