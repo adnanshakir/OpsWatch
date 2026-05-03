@@ -29,10 +29,11 @@ app.use(
 );
 
 // CORS
+app.options('*', cors());
 app.use(
   cors({
     origin: config.FRONTEND_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
   })
 );
