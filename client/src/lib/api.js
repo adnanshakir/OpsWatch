@@ -27,7 +27,7 @@ import { isDemoMode, disableDemoMode, DEMO_USER } from '@/lib/demo';
 
 /* ────────── Axios client ────────── */
 
-const http = axios.create({
+export const http = axios.create({
   baseURL: '/api',
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
@@ -86,7 +86,13 @@ function toIncident(raw) {
     assigneeIds: (raw.assignedTo || []).map((u) => u?._id || u?.id || u),
     assigneeUsers: (raw.assignedTo || [])
       .filter((u) => typeof u === 'object')
-      .map((u) => ({ id: u._id, name: u.name, email: u.email })),
+      .map((u) => ({
+        id: u._id || u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        avatar: u.avatar,
+      })),
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
     resolvedAt: raw.status === 'resolved' ? raw.updatedAt : null,
@@ -225,7 +231,7 @@ export async function updateIncident(incidentId, patch) {
   return useIncidentsStore.getState().updateIncident(incidentId, patch);
 }
 
-export async function assignUsers(incidentId, assignedTo) {
+export async function assignResponders(incidentId, assignedTo) {
   if (isDemoMode()) {
     return useIncidentsStore.getState().updateIncident(incidentId, {
       assigneeIds: assignedTo,
@@ -600,3 +606,22 @@ export const auth = {
   me,
   googleAuthUrl,
 };
+
+/* ────────── Status Page Settings ────────── */
+
+export async function getStatusPageSettings() {
+  const { data } = await http.get('/workspace/status-page');
+  return data;
+}
+
+export async function updateStatusPageSettings(settings) {
+  const { data } = await http.patch('/workspace/status-page', settings);
+  return data;
+}
+
+/* ────────── AI ────────── */
+
+export async function suggestCauses(incidentData) {
+  const { data } = await http.post('/ai/suggest-causes', incidentData);
+  return data;
+}
