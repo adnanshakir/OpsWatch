@@ -13,18 +13,16 @@ const generateInviteCode = () =>
 
 export const createWorkspace = async (req, res, next) => {
   try {
-    const { name, slug } = req.body;
+    const { name, slug, systemContext } = req.body;
 
     if (req.user.workspace) {
       throw new AppError('You already belong to a workspace', 400);
     }
 
-    const existing = await Workspace.findOne({ slug });
-    if (existing) throw new AppError('Workspace slug already exists', 400);
-
     const workspace = await Workspace.create({
       name,
       slug,
+      systemContext: systemContext || {},
       inviteCode: generateInviteCode(),
       createdBy: req.user._id,
     });
@@ -142,7 +140,7 @@ export const updateUserRole = async (req, res, next) => {
 export const getWorkspace = async (req, res, next) => {
   try {
     const workspace = await Workspace.findById(req.user.workspace).select(
-      '_id name slug inviteCode createdBy'
+      '_id name slug inviteCode createdBy systemContext'
     );
 
     if (!workspace) {
@@ -161,15 +159,8 @@ export const getWorkspaceMembers = async (req, res, next) => {
       .select('_id name email role')
       .lean();
 
-    const rolePriority = {
-      owner: 1,
-      admin: 2,
-      member: 3,
-    };
-
-    members.sort((a, b) => {
-      return rolePriority[a.role] - rolePriority[b.role];
-    });
+    const rolePriority = { owner: 1, admin: 2, member: 3 };
+    members.sort((a, b) => rolePriority[a.role] - rolePriority[b.role]);
 
     return res.status(200).json({ data: members });
   } catch (error) {
@@ -277,4 +268,49 @@ export const deleteWorkspace = async (req, res, next) => {
   }
 };
 
+export const updateWorkspaceContext = async (req, res, next) => {
+  try {
+    if (!['owner', 'admin'].includes(req.user.role)) {
+      throw new AppError('Forbidden', 403);
+    }
 
+    const workspace = await Workspace.findById(req.user.workspace);
+    if (!workspace) {
+      throw new AppError('Workspace not found', 404);
+    }
+
+    const allowed = [
+      'projectName',
+      'liveUrl',
+      'stackPreset',
+      'techStack',
+      'integrations',
+      'repoUrl',
+    ];
+
+    const hasValidField = Object.keys(req.body).some((key) =>
+      allowed.includes(key)
+    );
+
+    if (!hasValidField) {
+      throw new AppError('No valid fields provided', 400);
+    }
+
+    // Ensure systemContext exists on the document
+    if (!workspace.systemContext) {
+      workspace.systemContext = {};
+    }
+
+    allowed.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        workspace.systemContext[field] = req.body[field];
+      }
+    });
+
+    await workspace.save();
+
+    return res.status(200).json(workspace.systemContext);
+  } catch (error) {
+    return next(error);
+  }
+};

@@ -151,8 +151,21 @@ export const updateService = async (req, res, next) => {
 // writes are blocked.
 export const updateServiceStatus = async (req, res, next) => {
   try {
+    // ✅ role check
+    if (!['admin', 'owner'].includes(req.user.role)) {
+      throw new AppError('Forbidden', 403);
+    }
+
     const { status } = req.body;
+
+    // ✅ required check
+    if (!status) {
+      throw new AppError('Status is required', 400);
+    }
+
+    // ✅ allowed validation
     const allowed = ['operational', 'degraded', 'down', 'maintenance'];
+
     if (!allowed.includes(status)) {
       throw new AppError(
         `Invalid status. Allowed: ${allowed.join(', ')}`,
@@ -160,6 +173,7 @@ export const updateServiceStatus = async (req, res, next) => {
       );
     }
 
+    // ✅ efficient update (best approach)
     const service = await Service.findOneAndUpdate(
       { _id: req.params.id, workspace: req.user.workspace },
       { healthStatus: status },
@@ -177,7 +191,6 @@ export const updateServiceStatus = async (req, res, next) => {
     return next(error);
   }
 };
-
 export const deleteService = async (req, res, next) => {
   try {
     const service = await Service.findOne({
