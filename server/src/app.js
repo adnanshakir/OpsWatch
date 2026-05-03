@@ -31,7 +31,7 @@ app.use(
 // CORS
 app.use(
   cors({
-    origin: config.FRONTEND_URL,
+    origin: config.FRONTEND_URL || 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   })
