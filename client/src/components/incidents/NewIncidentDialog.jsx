@@ -165,7 +165,11 @@ export function NewIncidentDialog({ open, onOpenChange }) {
       toast.success('Incident declared', { description: title });
       reset();
       onOpenChange(false);
-      navigate(`/app/incidents/${incident.id}`);
+      navigate(`/app/incidents/${incident.id || incident._id}`);
+    } catch (err) {
+      toast.error('Failed to declare incident.', {
+        description: err?.response?.data?.message || err.message,
+      });
     } finally {
       setSubmitting(false);
     }

@@ -39,7 +39,7 @@ export function LiveViewers({ incidentId }) {
         <div className="flex -space-x-1.5">
           {viewers.map((u) => (
             <span
-              key={u.id}
+              key={u._id || u.id}
               className="relative group cursor-help"
               title={`${u.name} (${u.role})`}
             >

@@ -625,3 +625,27 @@ export async function suggestCauses(incidentData) {
   const { data } = await http.post('/ai/suggest-causes', incidentData);
   return data;
 }
+
+/* ────────── Notifications ────────── */
+
+export async function getNotifications(page = 1, limit = 20) {
+  const { data } = await http.get('/notifications', {
+    params: { page, limit },
+  });
+  return data;
+}
+
+export async function markNotificationRead(id) {
+  const { data } = await http.patch(`/notifications/${id}/read`);
+  return data;
+}
+
+export async function markAllNotificationsRead() {
+  const { data } = await http.patch('/notifications/read-all');
+  return data;
+}
+
+/** Returns the full SSE URL (not an axios call — used with EventSource). */
+export function getNotificationStreamUrl() {
+  return '/api/notifications/stream';
+}
