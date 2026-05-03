@@ -26,7 +26,6 @@ export const updateStatusSchema = z.object({
 });
 
 export const assignUsersSchema = z.object({
-  // Accept only valid user ObjectIds when provided.
   assignedTo: z.array(objectIdSchema).min(1).optional(),
 });
 

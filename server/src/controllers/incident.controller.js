@@ -160,19 +160,17 @@ export const assignUsers = async (req, res, next) => {
     }
 
     if (Array.isArray(req.body.assignedTo)) {
-      // Validate that all user IDs exist in the database
-      const validUsersCount = await User.countDocuments({
-        _id: { $in: req.body.assignedTo },
+      // Filter out invalid IDs (like mock UI IDs) and find real users
+      const potentialIds = req.body.assignedTo.filter((id) =>
+        /^[0-9a-fA-F]{24}$/.test(id)
+      );
+
+      const validUsers = await User.find({
+        _id: { $in: potentialIds },
       });
 
-      if (validUsersCount !== req.body.assignedTo.length) {
-        throw new AppError(
-          'One or more User IDs are invalid or do not exist',
-          400
-        );
-      }
-
-      incident.assignedTo = req.body.assignedTo;
+      // Assign only the IDs that actually exist in our DB
+      incident.assignedTo = validUsers.map((u) => u._id);
     }
 
     await incident.save();
