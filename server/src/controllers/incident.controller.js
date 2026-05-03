@@ -30,7 +30,7 @@ export const createIncident = async (req, res, next) => {
 
     await incident.populate([
       { path: 'createdBy', select: 'name email avatar' },
-      { path: 'service', select: 'name type techStack environment' },
+      { path: 'service', select: 'name type environment' },
     ]);
 
     // Broadcast notification to workspace members
@@ -87,7 +87,7 @@ export const getIncidents = async (req, res, next) => {
       Incident.find(query)
         .populate('createdBy', 'name email')
         .populate('assignedTo', 'name email')
-        .populate('service', 'name type techStack environment')
+        .populate('service', 'name type environment')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit)),
@@ -223,7 +223,7 @@ export const assignUsers = async (req, res, next) => {
 
     await incident.populate('createdBy', 'name email');
     await incident.populate('assignedTo', 'name email');
-    await incident.populate('service', 'name type techStack environment');
+    await incident.populate('service', 'name type environment');
 
     return res.status(200).json(incident);
   } catch (error) {
@@ -239,7 +239,7 @@ export const getIncidentById = async (req, res, next) => {
     })
       .populate('createdBy', 'name email')
       .populate('assignedTo', 'name email')
-      .populate('service', 'name type techStack environment');
+      .populate('service', 'name type environment');
 
     if (!incident) {
       throw new AppError('Incident not found', 404);
@@ -323,7 +323,7 @@ export const updateIncident = async (req, res, next) => {
     await incident.populate([
       { path: 'createdBy', select: 'name email' },
       { path: 'assignedTo', select: 'name email' },
-      { path: 'service', select: 'name type techStack environment' },
+      { path: 'service', select: 'name type environment' },
     ]);
 
     return res.status(200).json(incident);
