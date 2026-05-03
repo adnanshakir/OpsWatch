@@ -15,7 +15,7 @@ import helmet from 'helmet';
 import mongoSanitize from '@exortek/express-mongo-sanitize';
 import { xss } from 'express-xss-sanitizer';
 import pinoHttp from 'pino-http';
-import { config } from './config/config.js';
+// import { config } from './config/config.js';
 
 const app = express();
 
@@ -31,7 +31,7 @@ app.use(
 // CORS
 app.use(
   cors({
-    origin: config.FRONTEND_URL || 'http://localhost:5173',
+    origin: ['https://ops-watch.vercel.app', 'http://localhost:5173'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
   })
