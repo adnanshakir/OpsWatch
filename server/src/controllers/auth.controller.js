@@ -11,8 +11,8 @@ import {
 
 const cookieOptions = {
   httpOnly: true,
-  sameSite: 'none',
-  secure: true,
+  sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+  secure: config.NODE_ENV === 'production',
 };
 
 const generateTokens = async (user) => {
@@ -219,9 +219,13 @@ export const refreshAccessToken = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
-    await User.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } });
-    res.clearCookie('accessToken', cookieOptions);
-    res.clearCookie('refreshToken', cookieOptions);
+    if (req.user?._id) {
+      await User.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } });
+    }
+    
+    res.clearCookie('accessToken', { ...cookieOptions, maxAge: 0, expires: new Date(0), path: '/' });
+    res.clearCookie('refreshToken', { ...cookieOptions, maxAge: 0, expires: new Date(0), path: '/' });
+    
     return res.status(200).json({ message: 'Logged out successfully' });
   } catch (error) {
     return next(error);
